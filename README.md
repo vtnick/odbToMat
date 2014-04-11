@@ -6,6 +6,6 @@ Outputs Abaqus odb information to MATLAB mat file. Designed with the intention o
 What it does:
 ========
 
-1) Outputs assemlby and part information (nodes, elements) from Abaqus odbs to mat files.
-2) Outputs field outputs from odb to mat. Field outputs are broken down by instance as well as combined into one matrix.
-3) Attempts to replicate odb structure in MATLAB. 
+1. Outputs assemlby and part information (nodes, elements) from Abaqus odbs to mat files.
+2. Outputs field outputs from odb to mat. Field outputs are broken down by instance as well as combined into one matrix.
+3. Attempts to replicate odb structure in MATLAB. 
