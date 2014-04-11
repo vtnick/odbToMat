@@ -1,7 +1,7 @@
 odbToMat
 ========
 
-Outputs Abaqus odb information to MATLAB mat file. Designed with the intention of performing data analysis on Abaqus results using MATLAB. Uses the SciPy 0.7 library from scipy.org. This is [an example](http://example.com/ "Title")
+Outputs Abaqus odb information to MATLAB mat file. Designed with the intention of performing data analysis on Abaqus results using MATLAB. Uses the SciPy 0.7 library from [scipy.org](scipy.org)
 
 What it does:
 ========
