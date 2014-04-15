@@ -3,10 +3,10 @@ from shutil import rmtree
 from numpy import ix_
 import numpy as np
 import scipy.io as sio
+import fileTools
 from sys import argv
 from odbAccess import *
 from abaqusConstants import *
-import inpParser
 
 
 def extractAssembly(odb, work_dir):
@@ -15,44 +15,24 @@ def extractAssembly(odb, work_dir):
     odbWorkPath = path.join(work_dir, odbName)
     assemblyPath = path.join(odbWorkPath, 'assembly')
     assembly = odb.rootAssembly
-    if path.isdir(assemblyPath):
-        for root, dirs, files in walk(odbWorkPath):
-            for f in files:
-                unlink(path.join(root, f))
-            for d in dirs:
-                rmtree(path.join(root, d))
     makedirs(assemblyPath)
-    p = path.abspath(assemblyPath)
-    chdir(p)
-    pathToOdb, odbName = path.split(odb.path)
-    pathToPes = path.join(pathToOdb, odbName.split('.')[0] + '.pes')
-    pathToInp = path.join(pathToOdb, odbName.split('.')[0] + '.inp')
-    if path.exists(pathToPes):
-        inputFile = inpParser.InputFile(pathToPes)
-    elif path.exists(pathToInp):
-        inputFile = inpParser.InputFile(pathToInp)
-    else:
-        print "No input file found in ODB directory found"
-    p = inputFile.parse(usePyArray=True)
-    nodes = []
-    nodeLabels = []
-    elementLabels = []
-    for i, j in enumerate(p):
-        if j.name == 'assembly':
-            lower = i
-        elif j.name == 'endassembly':
-            upper = i
-    for i in range(lower+1, upper):
+    chdir(assemblyPath)
+
+    # Parse Input File For Node And Element Markers
+    p, lower, upper = fileTools.parseInputFile(odb)
+
+    # Extract Node/Element Data
+    nodes, nodeLabels, elementLabels = [], [], []
+    for i in range(lower + 1, upper):
         if p[i].name.lower() == 'node':
             nodeLabels.append(p[i].data[0][0])
             nodes.append(p[i].data[0][0:4])
-            sio.savemat('nodes', {'nodes': nodes})
         elif p[i].name.lower() == 'element':
             elementNumber = p[i].data[0][0]
             elementConnect = p[i].data[0][1:]
             ccon = {}
             for k, c in enumerate(elementConnect):
-                ccon['node_%d' % (k+1)] = c
+                ccon['node_%d' % (k + 1)] = c
             ccon['eType'] = p[i].parameter['type']
             sio.savemat('element_%d' % (elementNumber), ccon, appendmat=True)
             elementLabels.append(elementNumber)
@@ -71,33 +51,32 @@ def extractAssembly(odb, work_dir):
             parameters['elements'] = [q for q in elements if q]
             sio.savemat('elset_' + p[i].parameter['elset'], parameters)
 
+    if nodes:
+        sio.savemat('nodes', {'nodes': nodes})
+
     if nodeLabels:
-        assembly.NodeSetFromNodeLabels(name='ALL_NODES_CREATED', nodeLabels=(('', nodeLabels), ))
+        assembly.NodeSetFromNodeLabels(
+            name='ALL_NODES_CREATED', nodeLabels=(('', nodeLabels), ))
 
     if elementLabels:
-        assembly.ElementSetFromElementLabels(name='ALL_ELEMENTS_CREATED', elementLabels=(('', elementLabels), ))
+        assembly.ElementSetFromElementLabels(
+            name='ALL_ELEMENTS_CREATED', elementLabels=(('', elementLabels), ))
 
-    for root, dirs, files in walk(assemblyPath):
-        if not files:
-            rmtree(assemblyPath)
+    # If nothing is written in assembly folder delete it
+    fileTools.cleanUpEmpty(assemblyPath)
+
 
 def extractParts(odb, work_dir):
     # Get Instance Names
     instances = odb.rootAssembly.instances
     instanceKeys = instances.keys()
+
     if instanceKeys:
         # Make Folders
         odbName = odb.name.split('/')[-1].split('.')[0]
         odbWorkPath = path.join(work_dir, odbName)
         partsPath = path.join(odbWorkPath, 'parts')
-        if path.isdir(partsPath):
-            for root, dirs, files in walk(odbWorkPath):
-                for f in files:
-                    unlink(path.join(root, f))
-                for d in dirs:
-                    rmtree(path.join(root, d))
         makedirs(partsPath)
-        p = path.abspath(partsPath)
         chdir(partsPath)
 
         # Extract Values
@@ -132,7 +111,8 @@ def extractParts(odb, work_dir):
                 eLabels[i] = element.label
                 eConn[i, :] = list(element.connectivity)
                 eTypes[i] = element.type
-            sio.savemat('elements.mat', {'labels': eLabels, 'connect': eConn, 'eTypes': eTypes})
+            sio.savemat(
+                'elements.mat', {'labels': eLabels, 'connect': eConn, 'eTypes': eTypes})
 
             # Write Node Sets To File
             nKeys = nodeSets.keys()
@@ -146,12 +126,14 @@ def extractParts(odb, work_dir):
                     for node in cset:
                         cnodes.append(node.label)
                     nSetNodes[ix_([i], np.arange(0, len(cnodes)))] = cnodes
-                sio.savemat('nodeSets.mat', {'nSets': nSets, 'nSetNodes': nSetNodes})
+                sio.savemat(
+                    'nodeSets.mat', {'nSets': nSets, 'nSetNodes': nSetNodes})
 
             # Write Element Sets To File
             eSetKeys = elementSets.keys()
             if eSetKeys:
-                maxElems = max([len(elementSets[i].elements) for i in eSetKeys])
+                maxElems = max([len(elementSets[i].elements)
+                               for i in eSetKeys])
                 eSets = np.array(eSetKeys, dtype=np.object)
                 eSetElems = np.zeros((len(eSetKeys), maxElems))
                 for i, eset in enumerate(eSetKeys):
@@ -159,11 +141,13 @@ def extractParts(odb, work_dir):
                     celements = []
                     for element in cset:
                         celements.append(element.label)
-                    eSetElems[ix_([i], np.arange(0, len(celements)))] = celements
-                sio.savemat('elementSets.mat', {'eSets': eSets, 'eSetElems': eSetElems})
+                    eSetElems[
+                        ix_([i], np.arange(0, len(celements)))] = celements
+                sio.savemat(
+                    'elementSets.mat', {'eSets': eSets, 'eSetElems': eSetElems})
 
             # Change Back To Root Parts Directory
-            chdir(p)
+            chdir(partsPath)
 
 
 def extractFieldOutputs(currentFrame, frameNumber, instances, assembly):
@@ -187,24 +171,28 @@ def extractFieldOutputs(currentFrame, frameNumber, instances, assembly):
             instanceName = instance.replace('-', '_')
             nValues = len(instanceValues.values)
             # length of data array
-            nCols = max(1, len(np.atleast_1d(np.array(instanceValues.values[0].data))))
-            valueArray = np.zeros((nValues, nCols + 1))
-            # print len(instanceValues.values[0].data)
-            for k, cvalue in enumerate(instanceValues.values):
-                valueArray[k, 0] = cvalue.__getattribute__(location)
-                valueArray[k, 1:] = cvalue.data
             if nValues:
-                valueArraySorted = valueArray[valueArray[:, 0].argsort()]
-            sio.savemat('frame_%d_%s_%s.mat' % (frameNumber, instanceName, field.replace(' ', '_')), {'componentLabels': np.array([componentLabels], dtype=object), 'description': description, 'values': valueArraySorted})
+                nCols = max(
+                    1, len(np.atleast_1d(np.array(instanceValues.values[0].data))))
+                valueArray = np.zeros((nValues, nCols + 1))
+                for k, cvalue in enumerate(instanceValues.values):
+                    valueArray[k, 0] = cvalue.__getattribute__(location)
+                    valueArray[k, 1:] = cvalue.data
+                if nValues:
+                    valueArraySorted = valueArray[valueArray[:, 0].argsort()]
+                sio.savemat('frame_%d_%s_%s.mat' % (frameNumber, instanceName, field.replace(' ', '_')), {
+                            'componentLabels': np.array([componentLabels], dtype=object), 'description': description, 'values': valueArraySorted})
         a = False
         if n:
             if assemblySets[0] in assembly.nodeSets.keys():
                 a = True
-                assemblyValues = cfield.getSubset(region=assembly.nodeSets[assemblySets[0]])
+                assemblyValues = cfield.getSubset(
+                    region=assembly.nodeSets[assemblySets[0]])
         else:
             if assemblySets[0] in assembly.elementSets.keys():
                 a = True
-                assemblyValues = cfield.getSubset(region=assembly.elementSets[assemblySets[1]])
+                assemblyValues = cfield.getSubset(
+                    region=assembly.elementSets[assemblySets[1]])
         if a:
             componentLabels = assemblyValues.componentLabels
             description = assemblyValues.description
@@ -217,14 +205,16 @@ def extractFieldOutputs(currentFrame, frameNumber, instances, assembly):
                 valueArray[k, 1:] = cvalue.data
             if nValues:
                 valueArraySorted = valueArray[valueArray[:, 0].argsort()]
-            sio.savemat('frame_%d_%s_%s.mat' % (frameNumber, 'Assembly', field.replace(' ', '_')), {'componentLabels': np.array([componentLabels], dtype=object), 'description': description, 'values': valueArraySorted})
+            sio.savemat('frame_%d_%s_%s.mat' % (frameNumber, 'Assembly', field.replace(' ', '_')), {
+                        'componentLabels': np.array([componentLabels], dtype=object), 'description': description, 'values': valueArraySorted})
 
 
 def extractFrames(frames, stepName, instances, assembly):
     p = path.abspath(getcwd())
     stepDir = path.abspath(stepName)
     chdir(stepDir)
-    nFrameMembers = ['cyclicModeNumber', 'description', 'incrementNumber', 'frameValue', 'domain', 'frequency', 'mode']
+    nFrameMembers = ['cyclicModeNumber', 'description',
+                     'incrementNumber', 'frameValue', 'domain', 'frequency', 'mode']
     aFrameMembers = ['fieldOutputs', 'loadCase', 'associatedFrame']
     nframes = len(frames)
     for frameCount, cFrame in enumerate(frames):
@@ -283,13 +273,17 @@ def extractResults(odb, work_dir):
     # Extract step keys
     steps = odb.steps
     stepKeys = steps.keys()
-    nonArrayMembers = ['name', 'number', 'nlgeom', 'mass', 'acousticMass', 'massCenter', 'inertiaAboutCenter', 'inertiaAboutOrigin', 'acousticMassCenter', 'retainedEigenModes', 'description', 'procedure', 'domain', 'timePeriod', 'previousStepName', 'totalTime']
-    arrayMembers = ['frames', 'historyRegions', 'loadCases', 'retainedNodalDofs', 'eliminatedNodalDofs']
+    nonArrayMembers = [
+        'name', 'number', 'nlgeom', 'mass', 'acousticMass'
+        'massCenter', 'inertiaAboutCenter', 'inertiaAboutOrigin',
+        'acousticMassCenter', 'retainedEigenModes', 'description',
+        'procedure', 'domain', 'timePeriod', 'previousStepName', 'totalTime']
+
+    arrayMembers = ['frames', 'historyRegions', 'loadCases',
+                    'retainedNodalDofs', 'eliminatedNodalDofs']
 
     # loop through steps
     for k in stepKeys:
-        # makedirs(i)
-        # chdir(i)
         cstep = steps[k]
         makedirs(k)
         stepMembers = cstep.__members__
@@ -311,20 +305,16 @@ def extractResults(odb, work_dir):
                     extractRetainedNodalDofs(cstep.retainedNodalDofs, k)
                 elif i == 'eliminatedNodalDofs':
                     extractEliminatedNodalDofs(cstep.eliminatedNodalDofs, k)
-        sio.savemat(path.join(k,'steps.mat'), nonArray)
+        sio.savemat(path.join(k, 'steps.mat'), nonArray)
 
 
 if __name__ == '__main__':
     odbName = argv[1]
     odbPath = argv[2]
-    # odbName = 'FSAE_Simpleframe_Freq'
-    # odbName = 'c-b-s'
-    # odbName = 'baseRuns613'
-    # odbName = 'Frame_Freq'
-    # odbName = 'Frame_Static'
-    # odbName = 'Frame_NoParts'
-    # odbPath = '../odbs/frame'
     work_dir = path.abspath(argv[3])
+    folderPath = path.abspath(path.join(work_dir, odbName))
+    if path.isdir(folderPath):
+        rmtree(folderPath)
     odbFile = path.join(odbPath, odbName + '.odb')
     itemsToExtract = ['parts', 'assembly', 'results']
 
