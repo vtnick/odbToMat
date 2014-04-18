@@ -21,25 +21,20 @@ if ~s
     odbFields = odbFields(arrayfun(@(x) x.name(1), odbFields) ~= '.');
     for i=1:length(odbFields)
         cField = odbFields(i);
-        if strcmp(cField.name, 'parts')
-            partFolder = fullfile(work_dir, odbName, cField.name);
-            odb.parts = loadParts(partFolder);
-            
-        elseif strcmp(cField.name, 'assembly')
-            assemblyFolder = fullfile(work_dir, odbName, cField.name);
-            odb.assembly = loadAssembly(assemblyFolder);
+        if strcmp(cField.name, 'geometry')
+            geometryFolder = fullfile(work_dir, odbName, cField.name);
+            odb = loadGeometry(geometryFolder);
             
         elseif strcmp(cField.name, 'results')
             resultsFolder = fullfile(work_dir, odbName, cField.name);
             odb.steps = loadResults(resultsFolder);
         end
     end
-    odb = buildAllFieldOutput(odb);
     
     %% Save Mat File
     if saveKey
         save(fullfile(matDir,odbName),'odb');
     end
 else
-    disp('Abaqus Python Failed')
+    error('Abaqus Python Failed')
 end

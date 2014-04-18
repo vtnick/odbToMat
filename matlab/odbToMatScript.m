@@ -1,7 +1,7 @@
 clear
 clc
 %% Set Paths
-odbName = 'Frame_Freq'; % name of odb to extract
+odbName = 'Frame_Static'; % name of odb to extract
 odbPath = fullfile('..', 'odbs', 'frame'); % path to odb
 work_dir = fullfile('..', 'work'); % directory where scratch files are saved
 pathToPy = fullfile('..', 'python'); % path to location of odbToMat.py
@@ -19,23 +19,18 @@ if ~s
     odbFields = odbFields(arrayfun(@(x) x.name(1), odbFields) ~= '.');
     for i=1:length(odbFields)
         cField = odbFields(i);
-        if strcmp(cField.name, 'parts')
-            partFolder = fullfile(work_dir, odbName, cField.name);
-            odb.parts = loadParts(partFolder);
-            
-        elseif strcmp(cField.name, 'assembly')
-            assemblyFolder = fullfile(work_dir, odbName, cField.name);
-            odb.assembly = loadAssembly(assemblyFolder);
+        if strcmp(cField.name, 'geometry')
+            geometryFolder = fullfile(work_dir, odbName, cField.name);
+            odb = loadGeometry(geometryFolder);
             
         elseif strcmp(cField.name, 'results')
             resultsFolder = fullfile(work_dir, odbName, cField.name);
             odb.steps = loadResults(resultsFolder);
         end
     end
-    odb = buildAllFieldOutput(odb);
     
-    %% Save Mat File
+%% Save Mat File
     save(fullfile(matDir,odbName),'odb');
 else
-    disp('Abaqus Python Failed')
+    error('Abaqus Python Failed')
 end
