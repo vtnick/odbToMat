@@ -1,41 +1,36 @@
 odbToMat
 ========
 
-Outputs Abaqus odb information to MATLAB mat file. Designed with the intention of performing data analysis on Abaqus results using MATLAB. Uses the SciPy library from [scipy.org](scipy.org). If using built-in Numpy in Abaqus, Scipy needs to work with that version of Numpy. SciPy 0.7- 0.7.2 seems to work ok.
+Outputs Abaqus odb information to MATLAB mat file. Designed with the intention of performing data analysis on Abaqus results using MATLAB. Uses the Abaqus ODB API as well as the MATLAB MAT-File API.
 
 What it does:
 ========
 
-1. Outputs assembly and part information (nodes, elements) from Abaqus odbs to mat files.
-2. Outputs field outputs from odb to mat. Field outputs are broken down by instance as well as combined into one matrix.
-3. Attempts to replicate odb structure in MATLAB.
-4. Example odb files are included.
+1. Outputs geometry and results data from Abaqus odbs to mat files.
+2. Attempts to replicate odb structure in MATLAB.
+3. Example odb files are included.
 
 Limitations:
 =======
-1. Currently does not work for files without part instances. (untested)
-2. Currently does not output history output.
-3. Does not preserve Abaqus class structures and functions.
-4. User is responsible for installation and linking of Scipy library to use with Abaqus Python. Can copy the SciPy library into the folder with odbToMat, use PYTHONPATH enviroment variables, or add sys.path.append to odbToMat.py with correct path.
-5. Only captures data found in the "data" portion of the Abaqus field outputs. Does not output other fields like "maxPrincipal" for stress for example.
-6. Writing of mat files for field results is slow, especially for the "allValues". Comment out Line 167 in odbToMat.py to not save the data this way. No information will be lost, it just will not be all contained in one variable.
-7. Other things not yet found. Only limited testing thus far.
+1. Most testing is done on Linux system using g++ compiler, therefore some Windows specific issues might exist.
+2. Results output is limited to fieldout variables.
 
 How to use:
 =======
-
-In MATLAB fill in required variables in the "odbToMatScript.m" file. File and folder paths can be given relative or full path. MATLAB files and Python files are written to use cross-platform path functions and convert to full paths when needed. "odbToMatScript.m" will call the necessary python file.
-
-"odbToMatFunction.m" is a function version of the script. By default does not save the resulting mat file. Variable inputs to the function can specifiy the location to save the file.
+1. Run corresponding build file. File will extract ODB API and move the libraries. File will also compile the odbToMat. Windows users check path to vcvars file in the .bat to make sure it is correct.
+2. Fill in necessary information in odbToMat*.m and run.
 
 Versions of Abaqus and MATLAB:
 ====================
-
 Developed using Abaqus 6-13-1 and MATLAB R2013a.
+
+Test Cases:
+===========
+1. Ubuntu 12.04 x64 with g++ 4.6
+2. Windows 7 x64 in virtualbox with Microsoft VS 2010.
 
 To-Do:
 ====
-
-1. Test cases
-2. Verify support for odbs without part instances.
-3. Look to speed up write of larger mat files.
+1. Clean up code.
+2. Add ability to output on a set basis.
+3. Add history outputs.
