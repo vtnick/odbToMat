@@ -3,6 +3,8 @@ odbToMat
 
 Outputs Abaqus odb information to MATLAB mat file. Designed with the intention of performing data analysis on Abaqus results using MATLAB. Uses the Abaqus ODB API as well as the MATLAB MAT-File API.
 
+Uses [http://www.mathworks.com/matlabcentral/fileexchange/3857-absolutepath-m]("absolutepath" mfile) from File Exchange.
+
 What it does:
 ========
 
