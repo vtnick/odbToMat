@@ -1,0 +1,38 @@
+#!/bin/csh -f
+
+# Set Variables
+set source = "odbToMat"
+set abaqusIncludeDir = "./abaqusInclude/linux"
+set abaqusLibDir = "./abaqusLib/linux"
+set matIncludeDir = "./matInclude/linux"
+set matLibDir = "./matLib/linux"
+set odbToMatIncludeDir = "./odbToMatInclude"
+set odbToMatLibDir = "./odbToMatLib"
+
+# echo Extracting Abaqus API.....
+
+# abaqus extractOdbApi -name abaqusAPI
+
+# echo Move libraries and headers.....
+
+# mv ./abaqusAPI/lib/* $abaqusLibDir
+
+# mv ./abaqusAPI/include/* $abaqusIncludeDir
+
+# echo Clean up API...........
+
+# rm -rf abaqusAPI
+
+echo Resetting Library Search Path...
+
+setenv LD_LIBRARY_PATH ${abaqusLibDir}:${matLibDir}:${odbToMatLibDir}
+
+echo Compiling:
+
+cd $odbToMatLibDir
+g++ -c -fPIC -fno-omit-frame-pointer -pthread -w -Wno-deprecated -DTYPENAME=typename -DABQ_LINUX -DABQ_LNX86_64 -DSMA_GNUC -DFOR_TRAIL -DHAS_BOOL -DASSERT_ENABLED -D_BSD_TYPES -D_BSD_SOURCE -D_GNU_SOURCE -D_POSIX_SOURCE -D_XOPEN_SOURCE_EXTENDED -D_XOPEN_SOURCE -DHAVE_OPENGL -DHKS_OPEN_GL -DGL_GLEXT_PROTOTYPES -DMULTI_THREADING_ENABLED -D_REENTRANT -DABQ_MPI_SUPPORT -DABQ_MPI_PMPI -DBIT64 -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -I../$abaqusIncludeDir -I../$matIncludeDir -I../$odbToMatIncludeDir -DMATLAB_MEX_FILE -ansi -D_GNU_SOURCE -DGLNXA64 -DGCC  -O -DNDEBUG ./$source.cpp ./resultFunctions.cpp ./geometryFunctions.cpp ./convertFunctions.cpp
+
+cd ..
+echo Linking:
+
+g++ -o./$source.exe $odbToMatLibDir/$source.o $odbToMatLibDir/resultFunctions.o $odbToMatLibDir/geometryFunctions.o $odbToMatLibDir/convertFunctions.o -fPIC -pthread -Bdynamic -lABQSMAOdbDdbOdb -lABQSMAOdbApi -lABQSMAOdbCore -lABQSMAOdbCoreGeom -lABQSMAOdbAttrEO -lABQSMAAbuBasicUtils -lABQSMABasShared -lABQSMABasCoreUtils -lABQSMAStiCAE_StableTime -lABQSMABasMem -lABQSMAAbuGeom -lABQSMARomDiagEx -lABQSMASspUmaCore -lABQSMASimInterface -lABQSMAMtxCoreModule -lpthread -lm -I$abaqusIncludeDir -I$matIncludeDir -I$odbToMatIncludeDir -L$abaqusLibDir -L$matLibDir -L$odbToMatLibDir -lmat -lmx

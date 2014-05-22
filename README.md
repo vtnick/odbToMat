@@ -16,11 +16,12 @@ Limitations:
 =======
 1. Most testing is done on Linux system using g++ compiler, therefore some Windows specific issues might exist.
 2. Results output is limited to fieldout variables.
+3. Does not currently use v7.3 MAT files, therefore large odbs will not save and give seg faults. The HDF5 v7.3 is needed to store variables larger than 2gb. Currently having troubles saving using v7.3.
 
 How to use:
 =======
 1. Run corresponding build file. File will extract ODB API and move the libraries. File will also compile the odbToMat. Windows users check path to vcvars file in the .bat to make sure it is correct.
-2. Fill in necessary information in odbToMat*.m and run.
+2. Fill in necessary information in odbToMat_script.m and run.
 
 Versions of Abaqus and MATLAB:
 ====================
@@ -33,6 +34,8 @@ Test Cases:
 
 To-Do:
 ====
-1. Clean up code.
-2. Add ability to output on a set basis.
-3. Add history outputs.
+1. Fix issues with large data sets.
+2. Clean up code.
+3. Add ability to output on a set basis.
+4. Add history outputs.
+5. Add odbToMat_function.m.
