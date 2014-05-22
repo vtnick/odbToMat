@@ -9,19 +9,19 @@ set matLibDir = "./matLib/linux"
 set odbToMatIncludeDir = "./odbToMatInclude"
 set odbToMatLibDir = "./odbToMatLib"
 
-# echo Extracting Abaqus API.....
+echo Extracting Abaqus API.....
 
-# abaqus extractOdbApi -name abaqusAPI
+abaqus extractOdbApi -name abaqusAPI
 
-# echo Move libraries and headers.....
+echo Move libraries and headers.....
 
-# mv ./abaqusAPI/lib/* $abaqusLibDir
+mv ./abaqusAPI/lib/* $abaqusLibDir
 
-# mv ./abaqusAPI/include/* $abaqusIncludeDir
+mv ./abaqusAPI/include/* $abaqusIncludeDir
 
-# echo Clean up API...........
+echo Clean up API...........
 
-# rm -rf abaqusAPI
+rm -rf abaqusAPI
 
 echo Resetting Library Search Path...
 
