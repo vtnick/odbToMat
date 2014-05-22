@@ -49,8 +49,8 @@ mxArray* extractGeometry(odb_Assembly& cassemb)
   }
   mxArray *y, *z;
   mwSize dims[2] = {1,1};
-  // const char **fields = (const char **) fieldNames;
-  const char *fields[] = {"root1", "root2","root3","root4","root5","root6","root7","root8","root9","root10","root11","root12"};
+  const char **fields = (const char **) fieldNames;
+  // const char *fields[] = {"root1", "root2","root3","root4","root5","root6","root7","root8","root9","root10","root11","root12"};
   const char *instanceFieldNames[] = {"nodes", "elements", "nodeSets", "elementSets"};
   y = mxCreateStructArray(1, dims, totalNames, fields);
   delete [] cnametemp;
