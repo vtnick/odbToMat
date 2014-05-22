@@ -25,7 +25,7 @@ How to use:
 
 Versions of Abaqus and MATLAB:
 ====================
-Developed using Abaqus 6-13-1 and MATLAB R2013a.
+Developed using Abaqus 6-13-1 and MATLAB R2013a. Build scripts extract API according to version of Abaqus installed.
 
 Test Cases:
 ===========
