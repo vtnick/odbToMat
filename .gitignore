@@ -1,0 +1,21 @@
+# Abaqus ODB Lock Files
+*.lck
+
+# Compiled odbToMat Files
+*.o
+
+#
+
+# Executeables
+*.exe
+
+# Abaqus enviroment file
+*.env
+
+# Odbs to not include
+base*.odb
+c_b_c.odb
+c_b_s.odb
+
+# MATLAB MAT Files
+*.mat
