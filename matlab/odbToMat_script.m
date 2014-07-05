@@ -24,6 +24,6 @@ path_to_odbToMat = absolutepath(fullfile('./'));
 cd(path_to_odbToMat);
 
 %% Run Program
-cmd = sprintf('abaqus odbToMat %s', parameterString);
+cmd = sprintf('abaqus odbToMat.exe %s', parameterString);
 s = system(cmd);
 cd(cpath);
