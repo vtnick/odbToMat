@@ -1,0 +1,4 @@
+compile_cpp.extend(['-I./libs/linux','-DMATLAB_MEX_FILE', '-ansi',
+               '-DGLNXA64', '-DGCC'])
+
+link_exe.extend(['-I./libs/linux', '-L./libs/linux', '-lmat', '-lmx', '-Wl,-rpath,./libs/linux'])

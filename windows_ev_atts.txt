@@ -1,0 +1,1 @@
+link_exe.extend([/LIBPATH:./libs/windows libmx.lib libmat.lib])
