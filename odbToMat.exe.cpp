@@ -42,9 +42,9 @@ using namespace std;
   string fileSep = "/";
 #endif
 /*
-***************
+*****************
 utility functions
-***************
+*****************
 */
 void rightTrim(odb_String  &string,const char* char_set);
 void printExecutionSummary();
@@ -53,9 +53,9 @@ string getFileName(const char *odbstringName, const string& fileSep);
 string convertName(const char *cname);
 /***************************************************************/
 /*
-***************
+********************
 result function info
-***************
+********************
 */
 string resultsString = "results__step__";
 
@@ -64,9 +64,9 @@ const char *fields[] = {"data", "position", "labels", "instance"};
 int nfields = 4;
 /***************************************************************/
 /*
-***************
+**********************
 geometry function info
-***************
+**********************
 */
 string geoChar = "geometry__";
 const char *nodefieldnames[] = {"label", "coords"};
@@ -78,9 +78,9 @@ const char *rootelementSetFieldNames[] = {"labels", "instanceNames"};
 const char *elementSetFieldNames[] = {"labels"};
 /***************************************************************/
 /*
-***************
+******************************
 geometry function declarations
-***************
+******************************
 */
 void extractGeometry(MATFile *pmat, odb_Odb& myOdb);
 void extractInstanceNodes(MATFile *pmat, odb_SequenceNode nodeList, odb_String iname);
@@ -93,9 +93,9 @@ void extractRootElementSets(MATFile *pmat, odb_SetRepository esets, const char *
 void extractPartElementSets(MATFile *pmat, odb_SetRepository esets, odb_String iname);
 //*****************************************************************************
 /*
-***************
+****************************
 result function declarations
-***************
+****************************
 */
 void extractResults(MATFile *pmat, odb_Odb& myOdb);
 void extractStepResults(MATFile *pmat, odb_Step& step);
@@ -148,55 +148,6 @@ int ABQmain(int argc, char **argv)
 
   // Open the output database
   odb_Odb& myOdb = openOdb(odbPath, readOnly);
-  odb_StepRepository stepRepo = myOdb.steps();
-  odb_StepRepositoryIT stepIter( stepRepo );
-  for (stepIter.first(); !stepIter.isDone(); stepIter.next())
-  {
-    odb_Step& step = stepRepo[stepIter.currentKey()];
-    odb_SequenceFrame& allFramesInStep = step.frames();
-    int numFrames = allFramesInStep.size();
-    for (int i=0; i < numFrames; i++)
-    {
-      cout << "Extracting Step: " << step.name().CStr() << " Frame Number: " << i+1  << "/" << numFrames << endl;
-      odb_Frame cFrame = allFramesInStep.constGet(i);
-      odb_FieldOutputRepository& fieldOutputRep = cFrame.fieldOutputs();
-      odb_FieldOutputRepositoryIT fieldIter( fieldOutputRep );
-      for (fieldIter.first(); !fieldIter.isDone(); fieldIter.next())
-      {
-        cout << "Field: " << fieldIter.currentKey().CStr() << endl;
-        odb_FieldOutput& field = fieldOutputRep[fieldIter.currentKey()];
-        // const odb_SequenceFieldBulkData& seqDispBulkData = field.bulkDataBlocks();
-        // int numDispBlocks = seqDispBulkData.size();
-        // int numValues = field.values().size();
-        // int i = 0;
-        // for (int iblock=0; iblock<numDispBlocks; iblock++)
-        // {
-        //   const odb_FieldBulkData& bulkData = seqDispBulkData[iblock];
-        //   int numV = bulkData.length();
-        //   int numComps = bulkData.width();
-        //   float* data = 0;
-        //   data = bulkData.data();
-        //   const odb_Instance& cinstance = bulkData.instance();
-        //   // string ss = convertName(cinstance.name().CStr());
-        //   // bool stringlength = ss.length();
-        //   odb_Enum::odb_ResultPositionEnum position = bulkData.position();
-        //   int* nodeLabels = bulkData.nodeLabels();
-        //   int* elementLabels = bulkData.elementLabels();
-        //   int label;
-        //   for (int cvalue = 0, pos=0; cvalue < numV; cvalue++)
-        //   {
-        //     i++;
-        //   }
-        // }
-        fieldOutputRep.release(fieldIter.currentKey());
-      }
-      fieldOutputRep.release();
-      allFramesInStep.release(i);
-    }
-    allFramesInStep.release();
-    stepRepo.release(stepIter.currentKey());
-  }
-  stepRepo.release();
 
   // MAT File Name
   const char *matFileName;
@@ -211,16 +162,16 @@ int ABQmain(int argc, char **argv)
     matFileName = matPath.CStr();
   }
   MATFile *pmat;
-  // pmat = matOpen(matFileName, "w");
+  pmat = matOpen(matFileName, "w");
   // Extract ODB Information
-  // extractGeometry(pmat, myOdb);
+  extractGeometry(pmat, myOdb);
   cout << "Geometry Saved " << endl;
 
-  // extractResults(pmat, myOdb);
+  extractResults(pmat, myOdb);
   cout << "Results Saved" << endl;
 
   // close the output database before exiting the program
-  // matClose(pmat);
+  matClose(pmat);
   myOdb.release();
   myOdb.close();
   return(0);
